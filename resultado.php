@@ -1,4 +1,41 @@
 <?php
+// ok
+function better ($response) {
+    $response = json_decode($response);
+
+    $best_label = new \stdClass();
+    $best_label->id = '?';
+    $best_label->name = '?';
+    $best_label->prob = 0;
+    $best_label->color = 0;
+
+    foreach ($response->records as $v) {
+        $best_label->id = $v->best_label->id;
+        $best_label->name = $v->best_label->name;
+        $best_label->prob = $v->best_label->prob;
+    }
+
+    betterLabel($best_label);
+
+    $best_label->prob = floor($best_label->prob * 100 * 0.7);//hack precisao das imagens
+
+    return $best_label;
+}
+
+function betterLabel (&$best_label) {
+    if ($best_label->id == '7bde4666-8294-43da-aa47-75f9641ceb0a') {
+        $best_label->name = 'de indicação para cuidados médicos.';
+        $best_label->color = 'red';
+    } elseif ($best_label->id == '6f4ef655-6542-4b59-8e84-506d08babc7b') {
+        $best_label->name = 'de indicação para cuidados médicos.';
+        $best_label->color = 'red';
+    } elseif ($best_label->id == 'bf41aaf8-6ccc-4cfb-b49c-abc41969bd2c') {
+        $best_label->name = 'de chances de ser apenas uma manchinha.';
+    } else {
+        $best_label->name = $best_label->id;
+    }
+}
+
 $data = [
     'task_id' => '1400af99-9788-4721-81f6-46f0100d092f',
     'records' => [
@@ -17,39 +54,12 @@ curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array("Content-Type: application/j
 $response = curl_exec($curl_handle);
 $error_msg = curl_error($curl_handle);
 
-$best_label = new \stdClass();
-$best_label->name = '?';
-$best_label->prob = 0;
 
 if ($error_msg) {
     print_r($error_msg);
+    exit;
 } else {
-    $response = json_decode($response);
-
-    foreach ($response->records as $v) {
-        $best_label->id = $v->best_label->id;
-        $best_label->name = $v->best_label->name;
-        $best_label->prob = $v->best_label->prob;
-    }
-}
-
-$prob = $v->best_label->prob;
-$prob = $prob * 100;
-$prob = $prob * 0.7;//hack precisao das imagens
-$prob = floor($prob);
-
-$cor = 'green';
-
-if ($best_label->id == '7bde4666-8294-43da-aa47-75f9641ceb0a') {
-    $name = 'de indicação para cuidados médicos.';
-    $cor = 'red';
-} elseif ($best_label->id == '6f4ef655-6542-4b59-8e84-506d08babc7b') {
-    $name = 'de indicação para cuidados médicos.';
-    $cor = 'red';
-} elseif ($best_label->id == 'bf41aaf8-6ccc-4cfb-b49c-abc41969bd2c') {
-    $name = 'de chances de ser apenas uma manchinha.';
-} else {
-    $name = $best_label->id;
+    $better = better($response);
 }
 
 curl_close ($curl_handle);
@@ -78,8 +88,8 @@ curl_close ($curl_handle);
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1 style="font-size: 140px; color: <?php echo $cor; ?>;"><?php echo $prob; ?>%</h1>
-            <h2><?php echo $name; ?></h2>
+            <h1 style="font-size: 140px; color: <?php echo $better->color; ?>;"><?php echo $better->prob; ?>%</h1>
+            <h2><?php echo $better->name; ?></h2>
             <br>
             <div class="alert alert-danger" role="alert" style="font-size: 30px">
                 <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
